@@ -11,22 +11,32 @@ class MoviesController < ApplicationController
   end
   
   def index
+    
     @all_ratings = Movie.get_valid_ratings
     @movies = Movie.all
+    
+    #If change in selection except no selection, update session data
     if params[:ratings]
       session[:ratings] = params[:ratings]
     end
+    #Flow first time when session data is nil
     if !session[:ratings] 
       session[:ratings]= Hash[@all_ratings.collect { |item| [item, 1] } ]
     end
+    #If change in sorting, update session data
     if params[:sort_by]
       session[:sort_by] = params[:sort_by]
     end
+    
+    #Sorting+filtering
     @movies = Movie.order(session[:sort_by]).where(rating: session[:ratings].keys)
     
+    #If either params rating or sort is nil i.e. different from session, update
+    #with data from session
     if session[:ratings] != params[:ratings] || session[:sort] != params[:sort]
       redirect_to movies_path(ratings: session[:ratings], sort: session[:sort])
     end
+    
   end
 
   def new
