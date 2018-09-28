@@ -1,5 +1,5 @@
 class MoviesController < ApplicationController
-
+  # attr_accessor :a
   def movie_params
     params.require(:movie).permit(:title, :rating, :description, :release_date)
   end
@@ -9,16 +9,23 @@ class MoviesController < ApplicationController
     @movie = Movie.find(id) # look up movie by unique ID
     # will render app/views/movies/show.<extension> by default
   end
-
+  
   def index
     @all_ratings = Movie.get_valid_ratings
     @movies = Movie.all
-    a= params[:ratings]
-    b= params[:sort_by]
-    if a!=nil
-      @movies = Movie.order(b).where(rating: a.keys)
-    else
-      @movies = Movie.order(b)
+    if params[:ratings]
+      session[:ratings] = params[:ratings]
+    end
+    if !session[:ratings] 
+      session[:ratings]= Hash[@all_ratings.collect { |item| [item, 1] } ]
+    end
+    if params[:sort_by]
+      session[:sort_by] = params[:sort_by]
+    end
+    @movies = Movie.order(session[:sort_by]).where(rating: session[:ratings].keys)
+    
+    if session[:ratings] != params[:ratings] || session[:sort] != params[:sort]
+      redirect_to movies_path(ratings: session[:ratings], sort: session[:sort])
     end
   end
 
